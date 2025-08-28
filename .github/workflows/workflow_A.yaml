@@ -1,0 +1,9 @@
+name: workflow_A
+on: push
+
+jobs:
+  job_1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow A
+        run: echo "Workflow A ran"
