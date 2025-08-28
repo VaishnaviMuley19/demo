@@ -2,7 +2,7 @@ name: workflow_B
 on:
   workflow_run:
     workflows: ["workflow_A"]
-    branches: ["vm-workflow-sequence"]
+    branches: ["main"]
     types:
       - completed
 
