@@ -8,5 +8,5 @@ jobs:
       - name: Workflow A
         run: echo "Workflow A ran"
       
-      - name: Wait for 120 seconds
-        run: sleep 120
+      - name: Wait for 60 seconds
+        run: sleep 60
