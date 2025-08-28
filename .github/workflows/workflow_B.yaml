@@ -1,0 +1,15 @@
+name: workflow_B
+on:
+  workflow_run:
+    workflows: ["workflow_A"]
+    branches: ["vm-workflow-sequence"]
+    types:
+      - completed
+
+jobs:
+  job_1:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow B
+        run: echo "Workflow B ran after completion of Workflow A"
