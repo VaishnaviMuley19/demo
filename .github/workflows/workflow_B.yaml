@@ -33,6 +33,9 @@ jobs:
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+      
+      - name: Echo changed (in detect_changes job)
+        run: echo "changed=${{ steps.detect.outputs.changed }}"
 
   job_1:
     needs: detect_changes
