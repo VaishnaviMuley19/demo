@@ -24,28 +24,22 @@ jobs:
         shell: bash
         run: |
           sha="${{ github.event.workflow_run.head_sha }}"
-          echo "Checking files changed in commit $sha"
-          git diff-tree --no-commit-id --name-only -r "$sha" > files.txt || true
+          echo "Checking files changed for commit: $sha"
 
+          # List files changed in the (merge) commit. -m handles merge commits.
+          git diff-tree -m --no-commit-id --name-only -r "$sha" | tee files.txt
+
+          # Decide changed=true/false
           if grep -E '^(folder_1/|folder_2/)' files.txt >/dev/null 2>&1; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            changed=true
           else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            changed=false
           fi
 
-      - name: Show files.txt
-        shell: bash
-        run: |
+          echo "changed=$changed" | tee -a "$GITHUB_OUTPUT"
+
           echo "----- files.txt -----"
-          if [ -f files.txt ]; then
-            cat files.txt || true
-          else
-            echo "files.txt not found"
-          fi
-
-      
-      - name: Echo changed (in detect_changes job)
-        run: echo "changed=${{ steps.detect.outputs.changed }}"
+          if [ -s files.txt ]; then cat files.txt; else echo "(empty)"; fi
 
   job_1:
     needs: detect_changes
@@ -53,5 +47,8 @@ jobs:
     if: ${{ needs.detect_changes.result == 'success' && needs.detect_changes.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Echo changed
+        run: echo "changed=${{ needs.detect_changes.outputs.changed }}"
+
       - name: Workflow B
-        run: echo "Workflow B ran after A, and changes were found in folder_1 or folder_2."
+        run: echo "Workflow B ran after workflow A: folder_1 or folder_2 changed."
