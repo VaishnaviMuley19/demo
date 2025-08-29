@@ -51,4 +51,4 @@ jobs:
         run: echo "changed=${{ needs.detect_changes.outputs.changed }}"
 
       - name: Workflow B
-        run: echo "Workflow B ran after workflow A: folder_1 or folder_2 changed."
+        run: echo "Workflow B ran after workflow A = folder_1 or folder_2 changed."
