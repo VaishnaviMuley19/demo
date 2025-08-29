@@ -3,13 +3,42 @@ on:
   workflow_run:
     workflows: ["workflow_A"]
     branches: ["main"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
-  job_1:
+  detect_changes:
+    # Only proceed if Workflow A succeeded
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.detect.outputs.changed }}
+    steps:
+      - name: Checkout repo at triggering SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Detect changes in folder_1 or folder_2
+        id: detect
+        shell: bash
+        run: |
+          sha="${{ github.event.workflow_run.head_sha }}"
+          echo "Checking files changed in commit $sha"
+          git diff-tree --no-commit-id --name-only -r "$sha" > files.txt
+          cat files.txt || true
+
+          if grep -E '^(folder_1/|folder_2/)' files.txt >/dev/null 2>&1; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  job_1:
+    needs: detect_changes
+    # Run only if detect_changes ran successfully AND either folder changed
+    if: ${{ needs.detect_changes.result == 'success' && needs.detect_changes.outputs.changed == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Workflow B
-        run: echo "Workflow B ran after completion of Workflow A"
+        run: echo "Workflow B ran after A, and changes were found in folder_1 or folder_2."
