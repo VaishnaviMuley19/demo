@@ -25,14 +25,24 @@ jobs:
         run: |
           sha="${{ github.event.workflow_run.head_sha }}"
           echo "Checking files changed in commit $sha"
-          git diff-tree --no-commit-id --name-only -r "$sha" > files.txt
-          cat files.txt || true
+          git diff-tree --no-commit-id --name-only -r "$sha" > files.txt || true
 
           if grep -E '^(folder_1/|folder_2/)' files.txt >/dev/null 2>&1; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Show files.txt
+        shell: bash
+        run: |
+          echo "----- files.txt -----"
+          if [ -f files.txt ]; then
+            cat files.txt || true
+          else
+            echo "files.txt not found"
+          fi
+
       
       - name: Echo changed (in detect_changes job)
         run: echo "changed=${{ steps.detect.outputs.changed }}"
